@@ -9,7 +9,7 @@ local L = ABS.L
 local restoreErrors, spellCache, macroCache, macroNameCache, highestRanks = {}, {}, {}, {}, {}
 local playerClass
 
-local MAX_MACROS = 54
+local MAX_MACmPROS = 54
 local MAX_CHAR_MACROS = 18
 local MAX_GLOBAL_MACROS = 36
 local MAX_ACTION_BUTTONS = 144
@@ -86,7 +86,7 @@ function ABS:SaveProfile(name)
 			-- Save a spell
 			elseif( type == "spell" and id > 0 ) then
 			    local spellName, spellStance = GetSpellInfo(id)
-				if( spellName and spellStance ) then
+				if( spellName or spellStance ) then
 					set[actionID] = string.format("%s|%d|%s|%s|%s|%s", type, id, "", spellName, spellStance or "", extraID or "")
 				end
 			-- Save a macro
@@ -278,7 +278,7 @@ function ABS:RestoreAction(i, type, actionID, binding, ...)
 	-- Restore a spell, flyout or companion
 	if( type == "spell" or type == "flyout" or type == "companion" ) then
 		local spellName, spellRank = ...
-		if( spellCache[spellName] ) then
+		if( spellCache[spellName] and self.db.restoreRank ) then
 			PickupSpellBookItem(spellCache[spellName], BOOKTYPE_SPELL);
 		else
 		    PickupSpell(actionID)

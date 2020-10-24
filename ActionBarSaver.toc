@@ -1,7 +1,7 @@
-## Interface: 60000
+## Interface: 90001
 ## Title: Action Bar Saver
 ## Notes: Saves and restores your action bars.
-## Author: Shadowed
+## Author: Shadowed, Maintained by GreenLeader
 ## SavedVariables: ActionBarSaverDB
 ## LoadManagers: AddonLoader
 ## X-LoadOn-Slash: /actionbarsaver, /abs
