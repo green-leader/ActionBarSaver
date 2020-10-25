@@ -101,6 +101,9 @@ function ABS:SaveProfile(name)
 			-- Save random mount button
 			elseif( type == "summonmount" ) then
 				set[actionID] = string.format("%s|%s|%s", type, id, "Summon Random Favorite Mount");
+			-- Save a battle pet
+			elseif( type == "summonpet" ) then
+				set[actionID] = string.format("%s|%s", type, id);
 			end
 		end
 	end
@@ -365,6 +368,17 @@ function ABS:RestoreAction(i, type, actionID, binding, ...)
 		end
 		if( GetCursorInfo() ~= "summonmount" and GetCursorInfo() ~= "mount") then
 			table.insert(restoreErrors, string.format("Unable to restore mount \"%s\" to slot #%d, it does not appear to exist anymore.", actionID, i));
+			ClearCursor()
+			return
+        end
+		PlaceAction(i)
+	-- Restore battle pet
+	elseif( type == "summonpet") then
+		C_PetJournal.PickupPet(actionID)
+		self:Print(string.format("Pet: %s", actionID))
+		self:Print(string.format("type: %s", GetCursorInfo()))
+		if( GetCursorInfo() ~= "summonpet" and GetCursorInfo() ~= "battlepet" ) then
+			table.insert(restoreErrors, string.format("Unable to restore Battle pet \"%s\" to slot #%d, it does not appear to exist anymore.", actionID, i));
 			ClearCursor()
 			return
         end
