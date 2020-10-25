@@ -6,10 +6,10 @@ ActionBarSaver = select(2, ...)
 local ABS = ActionBarSaver
 local L = ABS.L
 
-local restoreErrors, spellCache, macroCache, macroNameCache, highestRanks = {}, {}, {}, {}, {}
+local restoreErrors, spellCache, macroCache, macroNameCache, highestRanks, mountCache = {}, {}, {}, {}, {}, {};
 local playerClass
 
-local MAX_MACmPROS = 54
+local MAX_MACROS = 54
 local MAX_CHAR_MACROS = 18
 local MAX_GLOBAL_MACROS = 36
 local MAX_ACTION_BUTTONS = 144
@@ -63,7 +63,7 @@ function ABS:UncompressText(text)
 	return string.trim(text)
 end
 
--- Restore a saved profile
+-- Save a profile
 function ABS:SaveProfile(name)
 	self.db.sets[playerClass][name] = self.db.sets[playerClass][name] or {}
 	local set = self.db.sets[playerClass][name]
@@ -97,7 +97,13 @@ function ABS:SaveProfile(name)
 				end
 			-- Flyout mnenu
 		    elseif( type == "flyout" ) then
-		        set[actionID] = string.format("%s|%d|%s|%s|%s", type, id, "", (GetFlyoutInfo(id)), "")
+				set[actionID] = string.format("%s|%d|%s|%s|%s", type, id, "", (GetFlyoutInfo(id)), "")
+			-- Save a mount
+			elseif( type == "summonmount" ) then
+				local name = C_MountJournal.GetMountInfoByID(id)
+				if( name ) then
+					set[actionID] = string.format("%s|%d|%s|%s|%s", type, id, "", name, "");
+				end
 			end
 		end
 	end
@@ -354,6 +360,17 @@ function ABS:RestoreAction(i, type, actionID, binding, ...)
 			return
 		end
 		
+		PlaceAction(i)
+	-- Restore a Mount
+	elseif( type == "summonmount") then
+
+		local creatureName, spellID, icon, active, isUsable, sourceType, isFavorite, isFactionSpecific, faction, hideOnChar, isCollected, mountID = C_MountJournal.GetMountInfoByID(actionID);
+		PickupSpell(spellID);
+		if( GetCursorInfo() ~= "summonmount" and GetCursorInfo() ~= "companion") then
+			table.insert(restoreErrors, string.format("Unable to restore mount \"%s\" to slot #%d, it does not appear to exist anymore.", actionID, i));
+			ClearCursor()
+			return
+        end
 		PlaceAction(i)
 	end
 end
