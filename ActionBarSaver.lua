@@ -96,8 +96,8 @@ function ABS:SaveProfile(name)
 					set[actionID] = string.format("%s|%d|%s|%s|%s|%s", type, actionID, "", self:CompressText(name), icon, self:CompressText(macro))
 				end
 			-- Flyout mnenu
-		    elseif( type == "flyout" ) then
-				set[actionID] = string.format("%s|%d|%s|%s|%s", type, id, "", (GetFlyoutInfo(id)), "")
+			elseif( type == "flyout" ) then
+				set[actionID] = string.format("%s|%s|%s", type, (GetFlyoutInfo(id)), "")
 			-- Save random mount button
 			elseif( type == "summonmount" ) then
 				set[actionID] = string.format("%s|%s|%s", type, id, "Summon Random Favorite Mount");
@@ -281,8 +281,8 @@ function ABS:RestoreProfile(name, overrideClass)
 end
 
 function ABS:RestoreAction(i, type, actionID, binding, ...)
-	-- Restore a spell, flyout or companion
-	if( type == "spell" or type == "flyout" or type == "companion" ) then
+	-- Restore a spell or companion
+	if( type == "spell" or type == "companion" ) then
 		local spellName, spellRank = ...
 		if( spellCache[spellName] and self.db.restoreRank ) then
 			PickupSpellBookItem(spellCache[spellName], BOOKTYPE_SPELL);
@@ -311,7 +311,16 @@ function ABS:RestoreAction(i, type, actionID, binding, ...)
 		PlaceAction(i)
 	-- Restore flyout
     elseif( type == "flyout" ) then
-        PickupSpell(actionID)
+		for tab = 1, GetNumSpellTabs() do
+			local tabName, texture, offset, numEntries, isGuild, offspecID = GetSpellTabInfo(tab);
+			for index = offset, tonumber(offset+numEntries) do
+				local type, id = GetSpellBookItemInfo(index, BOOKTYPE_SPELL);
+				local name = GetSpellBookItemName(index, BOOKTYPE_SPELL);
+				if type == "FLYOUT" and name == actionID then
+					PickupSpellBookItem(index, type);
+				end
+			end
+		end
         if( GetCursorInfo() ~= "flyout" ) then
 			table.insert(restoreErrors, string.format(L["Unable to restore flyout spell \"%s\" to slot #%d, it does not appear to exist anymore."], actionID, i))
 			ClearCursor()
