@@ -331,15 +331,15 @@ function ABS:RestoreAction(i, type, actionID, binding, ...)
         
 	-- Restore an equipment set button
 	elseif( type == "equipmentset" ) then
-		local slotID = -1
-		for i=1, GetNumEquipmentSets() do
-			if( GetEquipmentSetInfo(i) == actionID ) then
+		local slotID = 0
+		for i=1, C_EquipmentSet.GetNumEquipmentSets() do
+			if( C_EquipmentSet.GetEquipmentSetInfo(i) == actionID ) then
 				slotID = i
 				break
 			end
 		end
 		
-		PickupEquipmentSet(slotID)
+		C_EquipmentSet.PickupEquipmentSet(slotID)
 		if( GetCursorInfo() ~= type ) then
 			table.insert(restoreErrors, string.format(L["Unable to restore equipment set \"%s\" to slot #%d, it does not appear to exist anymore."], actionID, i))
 			ClearCursor()
