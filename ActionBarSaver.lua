@@ -98,9 +98,13 @@ function ABS:SaveProfile(name)
 			-- Flyout mnenu
 			elseif( type == "flyout" ) then
 				set[actionID] = string.format("%s|%s|%s", type, (GetFlyoutInfo(id)), "")
-			-- Save random mount button
+			-- Save a mount
 			elseif( type == "summonmount" ) then
-				set[actionID] = string.format("%s|%s|%s", type, id, "Summon Random Favorite Mount");
+				local name = C_MountJournal.GetMountInfoByID(id)
+				if( not name ) then
+					name = "Summon Random Favorite Mount"
+				end
+				set[actionID] = string.format("%s|%d|%s|%s|%s", type, id, "", name, "");
 			-- Save a battle pet
 			elseif( type == "summonpet" ) then
 				set[actionID] = string.format("%s|%s", type, id);
@@ -370,12 +374,15 @@ function ABS:RestoreAction(i, type, actionID, binding, ...)
 		end
 		
 		PlaceAction(i)
-	-- Restore random mount button
+	-- Restore a mount
 	elseif( type == "summonmount") then
 		if( tonumber(actionID) == tonumber(268435455) ) then 
 			C_MountJournal.Pickup(0);
+		else
+			local creatureName, spellID, icon, active, isUsable, sourceType, isFavorite, isFactionSpecific, faction, hideOnChar, isCollected, mountID = C_MountJournal.GetMountInfoByID(actionID);
+			PickupSpell(spellID);
 		end
-		if( GetCursorInfo() ~= "summonmount" and GetCursorInfo() ~= "mount") then
+		if( GetCursorInfo() ~= "summonmount" and GetCursorInfo() ~= "mount" and GetCursorInfo() ~= "companion" ) then
 			table.insert(restoreErrors, string.format("Unable to restore mount \"%s\" to slot #%d, it does not appear to exist anymore.", actionID, i));
 			ClearCursor()
 			return
