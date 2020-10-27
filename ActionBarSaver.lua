@@ -6,12 +6,9 @@ ActionBarSaver = select(2, ...)
 local ABS = ActionBarSaver
 local L = ABS.L
 
-local restoreErrors, spellCache, macroCache, macroNameCache, highestRanks, mountCache = {}, {}, {}, {}, {}, {};
+local restoreErrors, spellCache, macroCache, macroNameCache, highestRanks = {}, {}, {}, {}, {};
 local playerClass
 
-local MAX_MACROS = 54
-local MAX_CHAR_MACROS = 18
-local MAX_GLOBAL_MACROS = 36
 local MAX_ACTION_BUTTONS = 144
 local POSSESSION_START = 121
 local POSSESSION_END = 132
@@ -325,7 +322,7 @@ function ABS:RestoreAction(i, type, actionID, binding, ...)
 				end
 			end
 		end
-        if( GetCursorInfo() ~= "flyout" ) then
+        if( GetCursorInfo() ~= type ) then
 			table.insert(restoreErrors, string.format(L["Unable to restore flyout spell \"%s\" to slot #%d, it does not appear to exist anymore."], actionID, i))
 			ClearCursor()
 			return
@@ -343,7 +340,7 @@ function ABS:RestoreAction(i, type, actionID, binding, ...)
 		end
 		
 		PickupEquipmentSet(slotID)
-		if( GetCursorInfo() ~= "equipmentset" ) then
+		if( GetCursorInfo() ~= type ) then
 			table.insert(restoreErrors, string.format(L["Unable to restore equipment set \"%s\" to slot #%d, it does not appear to exist anymore."], actionID, i))
 			ClearCursor()
 			return
@@ -382,7 +379,7 @@ function ABS:RestoreAction(i, type, actionID, binding, ...)
 			local creatureName, spellID, icon, active, isUsable, sourceType, isFavorite, isFactionSpecific, faction, hideOnChar, isCollected, mountID = C_MountJournal.GetMountInfoByID(actionID);
 			PickupSpell(spellID);
 		end
-		if( GetCursorInfo() ~= "summonmount" and GetCursorInfo() ~= "mount" and GetCursorInfo() ~= "companion" ) then
+		if( GetCursorInfo() ~= type and GetCursorInfo() ~= "mount" and GetCursorInfo() ~= "companion" ) then
 			table.insert(restoreErrors, string.format("Unable to restore mount \"%s\" to slot #%d, it does not appear to exist anymore.", actionID, i));
 			ClearCursor()
 			return
@@ -391,9 +388,7 @@ function ABS:RestoreAction(i, type, actionID, binding, ...)
 	-- Restore battle pet
 	elseif( type == "summonpet") then
 		C_PetJournal.PickupPet(actionID)
-		self:Print(string.format("Pet: %s", actionID))
-		self:Print(string.format("type: %s", GetCursorInfo()))
-		if( GetCursorInfo() ~= "summonpet" and GetCursorInfo() ~= "battlepet" ) then
+		if( GetCursorInfo() ~= type and GetCursorInfo() ~= "battlepet" ) then
 			table.insert(restoreErrors, string.format("Unable to restore Battle pet \"%s\" to slot #%d, it does not appear to exist anymore.", actionID, i));
 			ClearCursor()
 			return
