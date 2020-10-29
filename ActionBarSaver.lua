@@ -82,7 +82,11 @@ function ABS:SaveProfile(name)
 				set[actionID] = string.format("%s|%d|%s|%s", type, id, "", (GetItemInfo(id)) or "")
 			-- Save a spell
 			elseif( type == "spell" and id > 0 ) then
-			    local spellName, spellStance = GetSpellInfo(id)
+				-- Fix issue with command pet being saved as the pet ability
+				if( id == 272678 or id == 272682 or id == 272679 ) then
+					id = 272651;
+				end
+				local spellName, spellStance = GetSpellInfo(id)
 				if( spellName or spellStance ) then
 					set[actionID] = string.format("%s|%d|%s|%s|%s|%s", type, id, "", spellName, spellStance or "", extraID or "")
 				end
