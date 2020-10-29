@@ -6,7 +6,7 @@ ActionBarSaver = select(2, ...)
 local ABS = ActionBarSaver
 local L = ABS.L
 
-local restoreErrors, spellCache, macroCache, macroNameCache, highestRanks = {}, {}, {}, {}, {};
+local restoreErrors, spellCache, macroCache, macroNameCache, flyoutCache = {}, {}, {}, {}, {};
 local playerClass
 
 local MAX_ACTION_BUTTONS = 144
@@ -96,7 +96,7 @@ function ABS:SaveProfile(name)
 				if( name and icon and macro ) then
 					set[actionID] = string.format("%s|%d|%s|%s|%s|%s", type, actionID, "", self:CompressText(name), icon, self:CompressText(macro))
 				end
-			-- Flyout mnenu
+			-- Flyout menu
 			elseif( type == "flyout" ) then
 				set[actionID] = string.format("%s|%s|%s", type, (GetFlyoutInfo(id)), "")
 			-- Save a mount
@@ -202,6 +202,7 @@ function ABS:RestoreProfile(name, overrideClass)
 	table.wipe(macroCache)
 	table.wipe(spellCache)
 	table.wipe(macroNameCache)
+	table.wipe(flyoutCache)
 	
 	-- Cache spells
 	for book=1, MAX_SKILLLINE_TABS do
@@ -221,6 +222,19 @@ function ABS:RestoreProfile(name, overrideClass)
 						spellCache[spell .. stance] = index
 					end
 	 			end
+			end
+		end
+	end
+
+
+	-- Cache Flyouts
+	for tab = 1, GetNumSpellTabs() do
+		local _, _, offset, numEntries, _, _ = GetSpellTabInfo(tab);
+		for index = offset, tonumber(offset+numEntries) do
+			local type, id = GetSpellBookItemInfo(index, BOOKTYPE_SPELL);
+			local name = GetSpellBookItemName(index, BOOKTYPE_SPELL);
+			if type == "FLYOUT" then
+				flyoutCache[name] = index
 			end
 		end
 	end
@@ -315,19 +329,12 @@ function ABS:RestoreAction(i, type, actionID, binding, ...)
 
 		PlaceAction(i)
 	-- Restore flyout
-    elseif( type == "flyout" ) then
-		for tab = 1, GetNumSpellTabs() do
-			local tabName, texture, offset, numEntries, isGuild, offspecID = GetSpellTabInfo(tab);
-			for index = offset, tonumber(offset+numEntries) do
-				local type, id = GetSpellBookItemInfo(index, BOOKTYPE_SPELL);
-				local name = GetSpellBookItemName(index, BOOKTYPE_SPELL);
-				if type == "FLYOUT" and name == actionID then
-					PickupSpellBookItem(index, type);
-				end
-			end
+	elseif( type == "flyout" ) then
+		if( flyoutCache[actionID] ) then
+			PickupSpellBookItem(flyoutCache[actionID], BOOKTYPE_SPELL);
 		end
         if( GetCursorInfo() ~= type ) then
-			table.insert(restoreErrors, string.format(L["Unable to restore flyout spell \"%s\" to slot #%d, it does not appear to exist anymore."], actionID, i))
+			table.insert(restoreErrors, string.format("Unable to restore flyout spell \"%s\" to slot #%d, it does not appear to exist anymore.", actionID, i))
 			ClearCursor()
 			return
         end
@@ -380,7 +387,7 @@ function ABS:RestoreAction(i, type, actionID, binding, ...)
 		if( tonumber(actionID) == tonumber(268435455) ) then 
 			C_MountJournal.Pickup(0);
 		else
-			local creatureName, spellID, icon, active, isUsable, sourceType, isFavorite, isFactionSpecific, faction, hideOnChar, isCollected, mountID = C_MountJournal.GetMountInfoByID(actionID);
+			local spellID = select(12, C_MountJournal.GetMountInfoByID(actionID))
 			PickupSpell(spellID);
 		end
 		if( GetCursorInfo() ~= type and GetCursorInfo() ~= "mount" and GetCursorInfo() ~= "companion" ) then
